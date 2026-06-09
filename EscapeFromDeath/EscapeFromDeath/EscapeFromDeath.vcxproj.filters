@@ -1,48 +1,39 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="windows-1251"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Исходные файлы">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Файлы заголовков">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Файлы ресурсов">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <Filter Include="Source Files"><UniqueIdentifier>{4fc737f1-c7a5-4376-a066-2a32d752a2ff}</UniqueIdentifier><Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions></Filter>
+    <Filter Include="Header Files"><UniqueIdentifier>{93995380-89bd-4b04-88eb-625fbe52ebfb}</UniqueIdentifier><Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions></Filter>
+    <Filter Include="Resource Files"><UniqueIdentifier>{67dae6ab-68c4-4dc3-aebf-3d95b8978efd}</UniqueIdentifier><Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;json;txt</Extensions></Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EscapeFromDeath.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="creatures.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="enemy.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="hero.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="Game.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
+    <ClCompile Include="EscapeFromDeath.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="Game.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="hero.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="enemy.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="creatures.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="combat_system.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="resource_manager.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="models.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="json.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="utils.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="console_encoding.cpp"><Filter>Source Files</Filter></ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="creatures.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="enemy.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="hero.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
+    <ClInclude Include="Game.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="hero.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="enemy.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="creatures.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="combat_system.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="resource_manager.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="models.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="json.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="utils.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="console_encoding.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\locations.json"><Filter>Resource Files</Filter></None>
+    <None Include="data\enemies.json"><Filter>Resource Files</Filter></None>
+    <None Include="data\combat_phrases.json"><Filter>Resource Files</Filter></None>
+    <None Include="data\dialogues.txt"><Filter>Resource Files</Filter></None>
   </ItemGroup>
 </Project>

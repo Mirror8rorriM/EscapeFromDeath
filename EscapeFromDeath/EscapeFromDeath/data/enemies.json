@@ -1,0 +1,25 @@
+{
+  "enemies": [
+    {
+      "id": "prisoner",
+      "name": "Зек",
+      "hp": 45,
+      "damage": 12,
+      "timeScale": 1.0
+    },
+    {
+      "id": "guard",
+      "name": "Охранник",
+      "hp": 65,
+      "damage": 16,
+      "timeScale": 1.15
+    },
+    {
+      "id": "guard_squad",
+      "name": "Группа охраны",
+      "hp": 110,
+      "damage": 22,
+      "timeScale": 1.35
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+day=1
+actionsLeft=4
+currentLocationId=yard
+lastTrainingDay=-100
+lastShowerDay=-100
+trainingCount=0
+hp=100
+strength=1
+agility=1
+endurance=1
+inventory=Форма заключённого-прачки
+flags=
