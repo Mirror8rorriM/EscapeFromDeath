@@ -39,6 +39,22 @@ struct DialogueEntry {
     std::string text;
 };
 
+struct ItemUseRule {
+    std::string locationId;
+    std::string item;
+    std::vector<std::string> aliases;
+
+    std::vector<std::string> requiresFlags;
+    std::vector<std::string> requiresItems;
+
+    std::vector<std::string> removeItems;
+    std::vector<std::string> addItems;
+    std::vector<std::string> setFlags;
+
+    std::string message;
+    bool spendAction = true;
+};
+
 struct GameState {
     int day = 1;
     int actionsLeft = 5;
@@ -56,4 +72,4 @@ struct GameState {
     void setFlag(const std::string& key, bool value = true);
 };
 
-} 
+} // namespace efd

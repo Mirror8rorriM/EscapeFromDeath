@@ -9,6 +9,49 @@
 
 namespace efd {
 
+namespace {
+
+int hexValue(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+    if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+    return -1;
+}
+
+unsigned int readHexCodePoint(const std::string& text, std::size_t& pos) {
+    if (pos + 4 > text.size()) throw std::runtime_error("Bad unicode escape");
+
+    unsigned int value = 0;
+    for (int i = 0; i < 4; ++i) {
+        int digit = hexValue(text[pos++]);
+        if (digit < 0) throw std::runtime_error("Bad unicode escape");
+        value = (value << 4) | static_cast<unsigned int>(digit);
+    }
+    return value;
+}
+
+void appendUtf8(std::string& out, unsigned int cp) {
+    if (cp <= 0x7F) {
+        out.push_back(static_cast<char>(cp));
+    } else if (cp <= 0x7FF) {
+        out.push_back(static_cast<char>(0xC0 | (cp >> 6)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    } else if (cp <= 0xFFFF) {
+        out.push_back(static_cast<char>(0xE0 | (cp >> 12)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    } else if (cp <= 0x10FFFF) {
+        out.push_back(static_cast<char>(0xF0 | (cp >> 18)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 12) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | ((cp >> 6) & 0x3F)));
+        out.push_back(static_cast<char>(0x80 | (cp & 0x3F)));
+    } else {
+        throw std::runtime_error("Bad unicode escape");
+    }
+}
+
+} // namespace
+
 Json::Json() : value_(nullptr) {}
 
 Json::Json(std::nullptr_t) : value_(nullptr) {}
@@ -108,9 +151,15 @@ Json JsonParser::parse() {
 }
 
 Json JsonParser::parseFile(const std::string& path) {
-    std::ifstream in(path);
+    std::ifstream in(path, std::ios::binary);
     if (!in) throw std::runtime_error("Cannot open JSON file: " + path);
     std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    if (text.size() >= 3 &&
+        static_cast<unsigned char>(text[0]) == 0xEF &&
+        static_cast<unsigned char>(text[1]) == 0xBB &&
+        static_cast<unsigned char>(text[2]) == 0xBF) {
+        text.erase(0, 3);
+    }
     return JsonParser(text).parse();
 }
 
@@ -195,11 +244,20 @@ std::string JsonParser::parseString() {
                 case 'r': out.push_back('\r'); break;
                 case 't': out.push_back('\t'); break;
                 case 'u': {
-                    // Минимальная поддержка: сохраняем escape как текст.
-                    if (pos_ + 4 > text_.size()) throw std::runtime_error("Bad unicode escape");
-                    out += "\\u";
-                    out.append(text_, pos_, 4);
-                    pos_ += 4;
+                    unsigned int cp = readHexCodePoint(text_, pos_);
+                    if (cp >= 0xD800 && cp <= 0xDBFF) {
+                        if (pos_ + 6 > text_.size() || text_[pos_++] != '\\' || text_[pos_++] != 'u') {
+                            throw std::runtime_error("Bad unicode surrogate pair");
+                        }
+                        unsigned int low = readHexCodePoint(text_, pos_);
+                        if (low < 0xDC00 || low > 0xDFFF) {
+                            throw std::runtime_error("Bad unicode surrogate pair");
+                        }
+                        cp = 0x10000 + ((cp - 0xD800) << 10) + (low - 0xDC00);
+                    } else if (cp >= 0xDC00 && cp <= 0xDFFF) {
+                        throw std::runtime_error("Bad unicode surrogate pair");
+                    }
+                    appendUtf8(out, cp);
                     break;
                 }
                 default: throw std::runtime_error("Unknown JSON escape");
@@ -250,4 +308,4 @@ void JsonParser::expect(char c) {
     ++pos_;
 }
 
-} 
+} // namespace efd

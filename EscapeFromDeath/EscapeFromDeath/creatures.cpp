@@ -4,7 +4,7 @@
 
 namespace efd {
 
-Creatures::Creatures() : name_("Безымянный") {}
+Creatures::Creatures() : name_("Р‘РµР·С‹РјСЏРЅРЅС‹Р№") {}
 
 Creatures::~Creatures() = default;
 
@@ -39,4 +39,4 @@ void Creatures::healFull() {
     hp_ = maxHp_;
 }
 
-} 
+} // namespace efd

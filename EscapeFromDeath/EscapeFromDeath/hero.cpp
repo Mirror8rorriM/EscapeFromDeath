@@ -85,10 +85,10 @@ void Hero::setStats(int strength, int agility, int endurance, int hp) {
 std::string Hero::statsLine() const {
     std::ostringstream out;
     out << "HP " << hp_ << "/" << maxHp()
-        << " | Ñèëà " << strengthLevel_
-        << " | Ëîâêîñòü " << agilityLevel_
-        << " | Âûíîñëèâîñòü " << enduranceLevel_;
+        << " | Ğ¡Ğ¸Ğ»Ğ° " << strengthLevel_
+        << " | Ğ›Ğ¾Ğ²ĞºĞ¾ÑÑ‚ÑŒ " << agilityLevel_
+        << " | Ğ’Ñ‹Ğ½Ğ¾ÑĞ»Ğ¸Ğ²Ğ¾ÑÑ‚ÑŒ " << enduranceLevel_;
     return out.str();
 }
 
-} 
+} // namespace efd

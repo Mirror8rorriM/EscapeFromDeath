@@ -1,5 +1,6 @@
 #include "Game.h"
 
+#include "console_encoding.h"
 #include "utils.h"
 
 #include <filesystem>
@@ -10,7 +11,30 @@ namespace efd {
 
 namespace {
 const char* SAVE_PATH = "saves/save.txt";
+
+bool sameTextUtf8(const std::string& left, const std::string& right) {
+    return toLowerUtf8(trim(left)) == toLowerUtf8(trim(right));
 }
+
+bool ruleNameMatches(const ItemUseRule& rule, const std::string& input) {
+    if (sameTextUtf8(rule.item, input)) return true;
+
+    for (const auto& alias : rule.aliases) {
+        if (sameTextUtf8(alias, input)) return true;
+    }
+    return false;
+}
+
+bool allFlagsAlreadySet(const GameState& state, const std::vector<std::string>& flags) {
+    if (flags.empty()) return false;
+
+    for (const auto& flag : flags) {
+        if (!state.flag(flag)) return false;
+    }
+    return true;
+}
+
+} // namespace
 
 Game::Game(std::string dataDirectory)
     : resources_(std::move(dataDirectory)), rng_(std::random_device{}()) {}
@@ -20,7 +44,7 @@ void Game::run() {
         resources_.loadAll();
         mainMenu();
     } catch (const std::exception& ex) {
-        std::cout << "Критическая ошибка: " << ex.what() << "\n";
+        std::cout << "РљСЂРёС‚РёС‡РµСЃРєР°СЏ РѕС€РёР±РєР°: " << ex.what() << "\n";
     }
 }
 
@@ -29,9 +53,9 @@ void Game::mainMenu() {
         std::cout << "\n==============================\n";
         std::cout << "       ESCAPE FROM DEATH       \n";
         std::cout << "==============================\n";
-        std::cout << "1. Новая игра\n";
-        std::cout << "2. Загрузить игру\n";
-        std::cout << "3. Выйти\n";
+        std::cout << "1. РќРѕРІР°СЏ РёРіСЂР°\n";
+        std::cout << "2. Р—Р°РіСЂСѓР·РёС‚СЊ РёРіСЂСѓ\n";
+        std::cout << "3. Р’С‹Р№С‚Рё\n";
 
         int choice = askInt("> ", 1, 3);
         switch (choice) {
@@ -54,25 +78,25 @@ void Game::loadGame() {
     Hero loadedHero;
     GameState loadedState;
     if (!resources_.loadGame(SAVE_PATH, loadedState, loadedHero)) {
-        std::cout << "Сохранение не найдено.\n";
+        std::cout << "РЎРѕС…СЂР°РЅРµРЅРёРµ РЅРµ РЅР°Р№РґРµРЅРѕ.\n";
         return;
     }
     hero_ = loadedHero;
     state_ = loadedState;
     inGame_ = true;
-    std::cout << "Игра загружена.\n";
+    std::cout << "РРіСЂР° Р·Р°РіСЂСѓР¶РµРЅР°.\n";
     gameLoop();
 }
 
 void Game::saveGame() {
     resources_.saveGame(SAVE_PATH, state_, hero_);
-    std::cout << "Игра сохранена в " << SAVE_PATH << ".\n";
+    std::cout << "РРіСЂР° СЃРѕС…СЂР°РЅРµРЅР° РІ " << SAVE_PATH << ".\n";
 }
 
 void Game::intro() {
-    std::cout << "\nВас приговорили к смертной казни. До приговора осталось десять дней.\n";
-    std::cout << "Девять дней вы можете изучать тюрьму, добывать вещи и информацию.\n";
-    std::cout << "В ночь на десятый день придётся бежать. Ошибки уже не исправить.\n\n";
+    std::cout << "\nР’Р°СЃ РїСЂРёРіРѕРІРѕСЂРёР»Рё Рє СЃРјРµСЂС‚РЅРѕР№ РєР°Р·РЅРё. Р”Рѕ РїСЂРёРіРѕРІРѕСЂР° РѕСЃС‚Р°Р»РѕСЃСЊ РґРµСЃСЏС‚СЊ РґРЅРµР№.\n";
+    std::cout << "Р”РµРІСЏС‚СЊ РґРЅРµР№ РІС‹ РјРѕР¶РµС‚Рµ РёР·СѓС‡Р°С‚СЊ С‚СЋСЂСЊРјСѓ, РґРѕР±С‹РІР°С‚СЊ РІРµС‰Рё Рё РёРЅС„РѕСЂРјР°С†РёСЋ.\n";
+    std::cout << "Р’ РЅРѕС‡СЊ РЅР° РґРµСЃСЏС‚С‹Р№ РґРµРЅСЊ РїСЂРёРґС‘С‚СЃСЏ Р±РµР¶Р°С‚СЊ. РћС€РёР±РєРё СѓР¶Рµ РЅРµ РёСЃРїСЂР°РІРёС‚СЊ.\n\n";
 }
 
 void Game::gameLoop() {
@@ -92,7 +116,7 @@ void Game::gameLoop() {
         actions[choice - 1].handler();
 
         if (state_.actionsLeft <= 0 && inGame_ && state_.day < 10) {
-            std::cout << "\nСил на новые дела не осталось. Охрана гонит вас обратно в камеру.\n";
+            std::cout << "\nРЎРёР» РЅР° РЅРѕРІС‹Рµ РґРµР»Р° РЅРµ РѕСЃС‚Р°Р»РѕСЃСЊ. РћС…СЂР°РЅР° РіРѕРЅРёС‚ РІР°СЃ РѕР±СЂР°С‚РЅРѕ РІ РєР°РјРµСЂСѓ.\n";
             state_.currentLocationId = "cell";
             actionSleep();
         }
@@ -103,16 +127,16 @@ void Game::gameLoop() {
 
 void Game::renderHeader() const {
     std::cout << "\n----------------------------------------\n";
-    std::cout << "День: " << state_.day << "/9 | Действий осталось: " << state_.actionsLeft << "\n";
+    std::cout << "Р”РµРЅСЊ: " << state_.day << "/9 | Р”РµР№СЃС‚РІРёР№ РѕСЃС‚Р°Р»РѕСЃСЊ: " << state_.actionsLeft << "\n";
     std::cout << hero_.statsLine() << "\n";
-    std::cout << "Инвентарь: ";
+    std::cout << "РРЅРІРµРЅС‚Р°СЂСЊ: ";
     printInventory();
     std::cout << "\n----------------------------------------\n";
 }
 
 void Game::renderLocation() const {
     const auto& loc = resources_.location(state_.currentLocationId);
-    std::cout << "Локация: " << loc.name << "\n";
+    std::cout << "Р›РѕРєР°С†РёСЏ: " << loc.name << "\n";
     std::cout << loc.description << "\n\n";
 }
 
@@ -122,42 +146,46 @@ std::vector<Game::MenuAction> Game::buildActions() {
 
     for (const auto& neighborId : loc.neighbors) {
         const auto& target = resources_.location(neighborId);
-        actions.push_back({"Перейти: " + target.name, [this, neighborId]() { moveTo(neighborId); }});
+        actions.push_back({"РџРµСЂРµР№С‚Рё: " + target.name, [this, neighborId]() { moveTo(neighborId); }});
     }
 
     const std::string& id = loc.id;
     if (id == "cell") {
-        actions.push_back({"Поспать до следующего дня", [this]() { actionSleep(); }});
+        actions.push_back({"РџРѕСЃРїР°С‚СЊ РґРѕ СЃР»РµРґСѓСЋС‰РµРіРѕ РґРЅСЏ", [this]() { actionSleep(); }});
     } else if (id == "gym") {
-        actions.push_back({"Тренировка силы", [this]() { actionTrain(StatType::Strength); }});
-        actions.push_back({"Тренировка ловкости", [this]() { actionTrain(StatType::Agility); }});
-        actions.push_back({"Тренировка выносливости", [this]() { actionTrain(StatType::Endurance); }});
+        actions.push_back({"РўСЂРµРЅРёСЂРѕРІРєР° СЃРёР»С‹", [this]() { actionTrain(StatType::Strength); }});
+        actions.push_back({"РўСЂРµРЅРёСЂРѕРІРєР° Р»РѕРІРєРѕСЃС‚Рё", [this]() { actionTrain(StatType::Agility); }});
+        actions.push_back({"РўСЂРµРЅРёСЂРѕРІРєР° РІС‹РЅРѕСЃР»РёРІРѕСЃС‚Рё", [this]() { actionTrain(StatType::Endurance); }});
         if (state_.trainingCount >= 5 && !state_.flag("strongman_friend")) {
-            actions.push_back({"Поговорить с Силачом", [this]() { actionTalkStrongman(); }});
+            actions.push_back({"РџРѕРіРѕРІРѕСЂРёС‚СЊ СЃ РЎРёР»Р°С‡РѕРј", [this]() { actionTalkStrongman(); }});
         }
     } else if (id == "shower") {
-        actions.push_back({"Помыться и восстановить здоровье", [this]() { actionShower(); }});
+        actions.push_back({"РџРѕРјС‹С‚СЊСЃСЏ Рё РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ Р·РґРѕСЂРѕРІСЊРµ", [this]() { actionShower(); }});
     } else if (id == "infirmary") {
-        actions.push_back({"Осмотреть лазарет", [this]() { actionInfirmarySearch(); }});
+        actions.push_back({"РћСЃРјРѕС‚СЂРµС‚СЊ Р»Р°Р·Р°СЂРµС‚", [this]() { actionInfirmarySearch(); }});
     } else if (id == "library") {
-        actions.push_back({"Почитать о старой части тюрьмы", [this]() { actionReadLibrary(); }});
-        actions.push_back({"Поговорить с Библиотекарем", [this]() { actionTalkLibrarian(); }});
+        actions.push_back({"РџРѕС‡РёС‚Р°С‚СЊ Рѕ СЃС‚Р°СЂРѕР№ С‡Р°СЃС‚Рё С‚СЋСЂСЊРјС‹", [this]() { actionReadLibrary(); }});
+        actions.push_back({"РџРѕРіРѕРІРѕСЂРёС‚СЊ СЃ Р‘РёР±Р»РёРѕС‚РµРєР°СЂРµРј", [this]() { actionTalkLibrarian(); }});
     } else if (id == "cafeteria") {
-        actions.push_back({"Осмотреть столовую", [this]() { actionSearchCafeteria(); }});
+        actions.push_back({"РћСЃРјРѕС‚СЂРµС‚СЊ СЃС‚РѕР»РѕРІСѓСЋ", [this]() { actionSearchCafeteria(); }});
         if (state_.day >= 3) {
-            actions.push_back({"Поговорить с Контрабандистом", [this]() { actionTalkSmuggler(); }});
+            actions.push_back({"РџРѕРіРѕРІРѕСЂРёС‚СЊ СЃ РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚РѕРј", [this]() { actionTalkSmuggler(); }});
         }
     } else if (id == "yard") {
-        actions.push_back({"Поговорить с заключёнными во дворе", [this]() { actionSearchYard(); }});
+        actions.push_back({"РџРѕРіРѕРІРѕСЂРёС‚СЊ СЃ Р·Р°РєР»СЋС‡С‘РЅРЅС‹РјРё РІРѕ РґРІРѕСЂРµ", [this]() { actionSearchYard(); }});
         if (state_.day >= 4) {
-            actions.push_back({"Сыграть с Игроманом на ставку", [this]() { actionTalkGambler(); }});
+            actions.push_back({"РЎС‹РіСЂР°С‚СЊ СЃ РРіСЂРѕРјР°РЅРѕРј РЅР° СЃС‚Р°РІРєСѓ", [this]() { actionTalkGambler(); }});
         }
     } else if (id == "laundry") {
-        actions.push_back({"Обыскать прачечную", [this]() { actionSearchLaundry(); }});
+        actions.push_back({"РћР±С‹СЃРєР°С‚СЊ РїСЂР°С‡РµС‡РЅСѓСЋ", [this]() { actionSearchLaundry(); }});
     }
 
-    actions.push_back({"Сохранить игру", [this]() { saveGame(); }});
-    actions.push_back({"Выйти в главное меню", [this]() { inGame_ = false; }});
+    if (!state_.inventory.empty()) {
+        actions.push_back({"РџСЂРёРјРµРЅРёС‚СЊ РїСЂРµРґРјРµС‚ РёР· РёРЅРІРµРЅС‚Р°СЂСЏ", [this]() { actionUseInventoryItem(); }});
+    }
+
+    actions.push_back({"РЎРѕС…СЂР°РЅРёС‚СЊ РёРіСЂСѓ", [this]() { saveGame(); }});
+    actions.push_back({"Р’С‹Р№С‚Рё РІ РіР»Р°РІРЅРѕРµ РјРµРЅСЋ", [this]() { inGame_ = false; }});
     return actions;
 }
 
@@ -166,13 +194,13 @@ void Game::moveTo(const std::string& locationId) {
 }
 
 void Game::actionSleep() {
-    if (!askYesNo("Вы точно хотите закончить этот день?")) return;
+    if (!askYesNo("Р’С‹ С‚РѕС‡РЅРѕ С…РѕС‚РёС‚Рµ Р·Р°РєРѕРЅС‡РёС‚СЊ СЌС‚РѕС‚ РґРµРЅСЊ?")) return;
     nextDay();
 }
 
 void Game::actionTrain(StatType stat) {
     if (state_.day - state_.lastTrainingDay < 2) {
-        std::cout << "Я слишком устал после прошлой тренировки. Нет сил на новую.\n";
+        std::cout << "РЇ СЃР»РёС€РєРѕРј СѓСЃС‚Р°Р» РїРѕСЃР»Рµ РїСЂРѕС€Р»РѕР№ С‚СЂРµРЅРёСЂРѕРІРєРё. РќРµС‚ СЃРёР» РЅР° РЅРѕРІСѓСЋ.\n";
         return;
     }
 
@@ -182,34 +210,34 @@ void Game::actionTrain(StatType stat) {
     spendAction();
 
     if (upgraded) {
-        std::cout << "Тренировка прошла успешно. Характеристика выросла.\n";
+        std::cout << "РўСЂРµРЅРёСЂРѕРІРєР° РїСЂРѕС€Р»Р° СѓСЃРїРµС€РЅРѕ. РҐР°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РІС‹СЂРѕСЃР»Р°.\n";
     } else {
-        std::cout << "Эта характеристика уже на максимальном уровне, но тренировка поддержала форму.\n";
+        std::cout << "Р­С‚Р° С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° СѓР¶Рµ РЅР° РјР°РєСЃРёРјР°Р»СЊРЅРѕРј СѓСЂРѕРІРЅРµ, РЅРѕ С‚СЂРµРЅРёСЂРѕРІРєР° РїРѕРґРґРµСЂР¶Р°Р»Р° С„РѕСЂРјСѓ.\n";
     }
 
     if (state_.trainingCount >= 5 && !state_.flag("strongman_seen")) {
         state_.setFlag("strongman_seen");
-        std::cout << "Силач заметил вашу настойчивость. Кажется, он хочет поговорить.\n";
+        std::cout << "РЎРёР»Р°С‡ Р·Р°РјРµС‚РёР» РІР°С€Сѓ РЅР°СЃС‚РѕР№С‡РёРІРѕСЃС‚СЊ. РљР°Р¶РµС‚СЃСЏ, РѕРЅ С…РѕС‡РµС‚ РїРѕРіРѕРІРѕСЂРёС‚СЊ.\n";
     }
 }
 
 void Game::actionShower() {
     if (state_.day - state_.lastShowerDay < 3) {
-        std::cout << "Заключённым запрещено мыться чаще одного раза в 3 дня.\n";
+        std::cout << "Р—Р°РєР»СЋС‡С‘РЅРЅС‹Рј Р·Р°РїСЂРµС‰РµРЅРѕ РјС‹С‚СЊСЃСЏ С‡Р°С‰Рµ РѕРґРЅРѕРіРѕ СЂР°Р·Р° РІ 3 РґРЅСЏ.\n";
         return;
     }
     hero_.healFull();
     state_.lastShowerDay = state_.day;
     spendAction();
-    std::cout << "Вы смыли кровь и восстановили здоровье.\n";
+    std::cout << "Р’С‹ СЃРјС‹Р»Рё РєСЂРѕРІСЊ Рё РІРѕСЃСЃС‚Р°РЅРѕРІРёР»Рё Р·РґРѕСЂРѕРІСЊРµ.\n";
 }
 
 void Game::actionInfirmarySearch() {
     spendAction();
-    if (!state_.hasItem("Скальпель") && chance(30)) {
-        addItemOnce("Скальпель", "Медсестра отвернулась. Вы украли скальпель.");
+    if (!state_.hasItem("РЎРєР°Р»СЊРїРµР»СЊ") && chance(30)) {
+        addItemOnce("РЎРєР°Р»СЊРїРµР»СЊ", "РњРµРґСЃРµСЃС‚СЂР° РѕС‚РІРµСЂРЅСѓР»Р°СЃСЊ. Р’С‹ СѓРєСЂР°Р»Рё СЃРєР°Р»СЊРїРµР»СЊ.");
     } else {
-        std::cout << "Ничего полезного найти не удалось.\n";
+        std::cout << "РќРёС‡РµРіРѕ РїРѕР»РµР·РЅРѕРіРѕ РЅР°Р№С‚Рё РЅРµ СѓРґР°Р»РѕСЃСЊ.\n";
     }
 }
 
@@ -217,9 +245,9 @@ void Game::actionReadLibrary() {
     spendAction();
     if (!state_.flag("info_old_tunnels")) {
         state_.setFlag("info_old_tunnels");
-        std::cout << "В старой книге вы нашли упоминание о техническом тоннеле под прачечной.\n";
+        std::cout << "Р’ СЃС‚Р°СЂРѕР№ РєРЅРёРіРµ РІС‹ РЅР°С€Р»Рё СѓРїРѕРјРёРЅР°РЅРёРµ Рѕ С‚РµС…РЅРёС‡РµСЃРєРѕРј С‚РѕРЅРЅРµР»Рµ РїРѕРґ РїСЂР°С‡РµС‡РЅРѕР№.\n";
     } else {
-        std::cout << "Вы перечитали записи. Тоннель под прачечной всё ещё кажется лучшим шансом.\n";
+        std::cout << "Р’С‹ РїРµСЂРµС‡РёС‚Р°Р»Рё Р·Р°РїРёСЃРё. РўРѕРЅРЅРµР»СЊ РїРѕРґ РїСЂР°С‡РµС‡РЅРѕР№ РІСЃС‘ РµС‰С‘ РєР°Р¶РµС‚СЃСЏ Р»СѓС‡С€РёРј С€Р°РЅСЃРѕРј.\n";
     }
 }
 
@@ -229,13 +257,13 @@ void Game::actionTalkSmuggler() {
     if (!lines.empty()) std::cout << lines.back().text << "\n";
 
     if (!state_.flag("smuggler_trust")) {
-        std::cout << "Контрабандист требует доказать, что вы не подставной. Нужно спровоцировать драку с охраной.\n";
-        if (askYesNo("Устроить драку?")) {
+        std::cout << "РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚ С‚СЂРµР±СѓРµС‚ РґРѕРєР°Р·Р°С‚СЊ, С‡С‚Рѕ РІС‹ РЅРµ РїРѕРґСЃС‚Р°РІРЅРѕР№. РќСѓР¶РЅРѕ СЃРїСЂРѕРІРѕС†РёСЂРѕРІР°С‚СЊ РґСЂР°РєСѓ СЃ РѕС…СЂР°РЅРѕР№.\n";
+        if (askYesNo("РЈСЃС‚СЂРѕРёС‚СЊ РґСЂР°РєСѓ?")) {
             CombatSystem combat(resources_.combatPhrases());
             bool won = combat.fight(hero_, resources_.enemy("guard"));
             if (won) {
                 state_.setFlag("smuggler_trust");
-                addItemOnce("Отмычка", "Контрабандист одобрительно кивает и передаёт вам отмычку.");
+                addItemOnce("РћС‚РјС‹С‡РєР°", "РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚ РѕРґРѕР±СЂРёС‚РµР»СЊРЅРѕ РєРёРІР°РµС‚ Рё РїРµСЂРµРґР°С‘С‚ РІР°Рј РѕС‚РјС‹С‡РєСѓ.");
             } else {
                 handleLostFight();
             }
@@ -243,13 +271,13 @@ void Game::actionTalkSmuggler() {
         return;
     }
 
-    if (!state_.hasItem("Верёвка")) {
-        addItemOnce("Верёвка", "Контрабандист достал для вас крепкую верёвку.");
+    if (!state_.hasItem("Р’РµСЂС‘РІРєР°")) {
+        addItemOnce("Р’РµСЂС‘РІРєР°", "РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚ РґРѕСЃС‚Р°Р» РґР»СЏ РІР°СЃ РєСЂРµРїРєСѓСЋ РІРµСЂС‘РІРєСѓ.");
     } else if (!state_.flag("guard_schedule")) {
         state_.setFlag("guard_schedule");
-        std::cout << "Контрабандист рассказал, что у прачечной ночью только один обход.\n";
+        std::cout << "РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚ СЂР°СЃСЃРєР°Р·Р°Р», С‡С‚Рѕ Сѓ РїСЂР°С‡РµС‡РЅРѕР№ РЅРѕС‡СЊСЋ С‚РѕР»СЊРєРѕ РѕРґРёРЅ РѕР±С…РѕРґ.\n";
     } else {
-        std::cout << "Контрабандист больше ничем не может помочь бесплатно.\n";
+        std::cout << "РљРѕРЅС‚СЂР°Р±Р°РЅРґРёСЃС‚ Р±РѕР»СЊС€Рµ РЅРёС‡РµРј РЅРµ РјРѕР¶РµС‚ РїРѕРјРѕС‡СЊ Р±РµСЃРїР»Р°С‚РЅРѕ.\n";
     }
 }
 
@@ -260,49 +288,49 @@ void Game::actionTalkLibrarian() {
 
     if (!state_.flag("info_laundry_exit")) {
         state_.setFlag("info_laundry_exit");
-        std::cout << "Библиотекарь шепчет: 'Ищи не стены, а стоки. Прачечная ближе всего к свободе'.\n";
+        std::cout << "Р‘РёР±Р»РёРѕС‚РµРєР°СЂСЊ С€РµРїС‡РµС‚: 'РС‰Рё РЅРµ СЃС‚РµРЅС‹, Р° СЃС‚РѕРєРё. РџСЂР°С‡РµС‡РЅР°СЏ Р±Р»РёР¶Рµ РІСЃРµРіРѕ Рє СЃРІРѕР±РѕРґРµ'.\n";
     } else {
-        std::cout << "Библиотекарь советует не доверять первому попавшемуся маршруту.\n";
+        std::cout << "Р‘РёР±Р»РёРѕС‚РµРєР°СЂСЊ СЃРѕРІРµС‚СѓРµС‚ РЅРµ РґРѕРІРµСЂСЏС‚СЊ РїРµСЂРІРѕРјСѓ РїРѕРїР°РІС€РµРјСѓСЃСЏ РјР°СЂС€СЂСѓС‚Сѓ.\n";
     }
 }
 
 void Game::actionTalkStrongman() {
     spendAction();
     state_.setFlag("strongman_friend");
-    addItemOnce("Железный прут", "Силач дал вам железный прут и пообещал отвлечь охрану в нужный момент.");
+    addItemOnce("Р–РµР»РµР·РЅС‹Р№ РїСЂСѓС‚", "РЎРёР»Р°С‡ РґР°Р» РІР°Рј Р¶РµР»РµР·РЅС‹Р№ РїСЂСѓС‚ Рё РїРѕРѕР±РµС‰Р°Р» РѕС‚РІР»РµС‡СЊ РѕС…СЂР°РЅСѓ РІ РЅСѓР¶РЅС‹Р№ РјРѕРјРµРЅС‚.");
 }
 
 void Game::actionTalkGambler() {
     spendAction();
-    std::cout << "Игроман предлагает ставку: ваша пайка против карты обходов.\n";
-    if (!askYesNo("Согласиться играть?")) return;
+    std::cout << "РРіСЂРѕРјР°РЅ РїСЂРµРґР»Р°РіР°РµС‚ СЃС‚Р°РІРєСѓ: РІР°С€Р° РїР°Р№РєР° РїСЂРѕС‚РёРІ РєР°СЂС‚С‹ РѕР±С…РѕРґРѕРІ.\n";
+    if (!askYesNo("РЎРѕРіР»Р°СЃРёС‚СЊСЃСЏ РёРіСЂР°С‚СЊ?")) return;
 
     if (chance(50)) {
         state_.setFlag("guard_schedule");
-        std::cout << "Вы выиграли. Игроман отдаёт карту ночных обходов.\n";
+        std::cout << "Р’С‹ РІС‹РёРіСЂР°Р»Рё. РРіСЂРѕРјР°РЅ РѕС‚РґР°С‘С‚ РєР°СЂС‚Сѓ РЅРѕС‡РЅС‹С… РѕР±С…РѕРґРѕРІ.\n";
     } else {
-        std::cout << "Вы проиграли ставку. День стал немного хуже, но жизнь продолжается.\n";
+        std::cout << "Р’С‹ РїСЂРѕРёРіСЂР°Р»Рё СЃС‚Р°РІРєСѓ. Р”РµРЅСЊ СЃС‚Р°Р» РЅРµРјРЅРѕРіРѕ С…СѓР¶Рµ, РЅРѕ Р¶РёР·РЅСЊ РїСЂРѕРґРѕР»Р¶Р°РµС‚СЃСЏ.\n";
     }
 }
 
 void Game::actionSearchLaundry() {
     spendAction();
-    if (!state_.hasItem("Форма заключённого-прачки")) {
-        addItemOnce("Форма заключённого-прачки", "В куче белья вы нашли форму, в которой можно пройти мимо сонной охраны.");
+    if (!state_.hasItem("Р¤РѕСЂРјР° Р·Р°РєР»СЋС‡С‘РЅРЅРѕРіРѕ-РїСЂР°С‡РєРё")) {
+        addItemOnce("Р¤РѕСЂРјР° Р·Р°РєР»СЋС‡С‘РЅРЅРѕРіРѕ-РїСЂР°С‡РєРё", "Р’ РєСѓС‡Рµ Р±РµР»СЊСЏ РІС‹ РЅР°С€Р»Рё С„РѕСЂРјСѓ, РІ РєРѕС‚РѕСЂРѕР№ РјРѕР¶РЅРѕ РїСЂРѕР№С‚Рё РјРёРјРѕ СЃРѕРЅРЅРѕР№ РѕС…СЂР°РЅС‹.");
     } else if (!state_.flag("laundry_lock_weak")) {
         state_.setFlag("laundry_lock_weak");
-        std::cout << "Вы заметили, что замок на технической двери держится на одном ржавом винте.\n";
+        std::cout << "Р’С‹ Р·Р°РјРµС‚РёР»Рё, С‡С‚Рѕ Р·Р°РјРѕРє РЅР° С‚РµС…РЅРёС‡РµСЃРєРѕР№ РґРІРµСЂРё РґРµСЂР¶РёС‚СЃСЏ РЅР° РѕРґРЅРѕРј СЂР¶Р°РІРѕРј РІРёРЅС‚Рµ.\n";
     } else {
-        std::cout << "Прачечная уже изучена вдоль и поперёк.\n";
+        std::cout << "РџСЂР°С‡РµС‡РЅР°СЏ СѓР¶Рµ РёР·СѓС‡РµРЅР° РІРґРѕР»СЊ Рё РїРѕРїРµСЂС‘Рє.\n";
     }
 }
 
 void Game::actionSearchCafeteria() {
     spendAction();
-    if (!state_.hasItem("Ложка")) {
-        addItemOnce("Ложка", "Вы украли заточенную ложку со стола.");
+    if (!state_.hasItem("Р›РѕР¶РєР°")) {
+        addItemOnce("Р›РѕР¶РєР°", "Р’С‹ СѓРєСЂР°Р»Рё Р·Р°С‚РѕС‡РµРЅРЅСѓСЋ Р»РѕР¶РєСѓ СЃРѕ СЃС‚РѕР»Р°.");
     } else {
-        std::cout << "В столовой слишком много глаз. Сегодня лучше не рисковать.\n";
+        std::cout << "Р’ СЃС‚РѕР»РѕРІРѕР№ СЃР»РёС€РєРѕРј РјРЅРѕРіРѕ РіР»Р°Р·. РЎРµРіРѕРґРЅСЏ Р»СѓС‡С€Рµ РЅРµ СЂРёСЃРєРѕРІР°С‚СЊ.\n";
     }
 }
 
@@ -310,9 +338,98 @@ void Game::actionSearchYard() {
     spendAction();
     if (!state_.flag("yard_wall_info")) {
         state_.setFlag("yard_wall_info");
-        std::cout << "Заключённые рассказали, что внешняя стена освещается всю ночь. Через двор идти опасно.\n";
+        std::cout << "Р—Р°РєР»СЋС‡С‘РЅРЅС‹Рµ СЂР°СЃСЃРєР°Р·Р°Р»Рё, С‡С‚Рѕ РІРЅРµС€РЅСЏСЏ СЃС‚РµРЅР° РѕСЃРІРµС‰Р°РµС‚СЃСЏ РІСЃСЋ РЅРѕС‡СЊ. Р§РµСЂРµР· РґРІРѕСЂ РёРґС‚Рё РѕРїР°СЃРЅРѕ.\n";
     } else {
-        std::cout << "Во дворе обсуждают слухи, но ничего нового вы не узнали.\n";
+        std::cout << "Р’Рѕ РґРІРѕСЂРµ РѕР±СЃСѓР¶РґР°СЋС‚ СЃР»СѓС…Рё, РЅРѕ РЅРёС‡РµРіРѕ РЅРѕРІРѕРіРѕ РІС‹ РЅРµ СѓР·РЅР°Р»Рё.\n";
+    }
+}
+
+
+void Game::actionUseInventoryItem() {
+    if (state_.inventory.empty()) {
+        std::cout << "РЈ РІР°СЃ РЅРµС‚ РїСЂРµРґРјРµС‚РѕРІ.\n";
+        return;
+    }
+
+    std::cout << "РРЅРІРµРЅС‚Р°СЂСЊ: ";
+    printInventory();
+    std::cout << "\nР’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ РїСЂРµРґРјРµС‚Р° РёР»Рё РѕСЃС‚Р°РІСЊС‚Рµ СЃС‚СЂРѕРєСѓ РїСѓСЃС‚РѕР№ РґР»СЏ РѕС‚РјРµРЅС‹: ";
+
+    std::string input;
+    if (!readLineUtf8(input)) {
+        std::cout << "\nР’РІРѕРґ Р·Р°РєСЂС‹С‚.\n";
+        inGame_ = false;
+        return;
+    }
+
+    input = trim(input);
+    if (input.empty()) {
+        std::cout << "Р’С‹ РїРµСЂРµРґСѓРјР°Р»Рё.\n";
+        return;
+    }
+
+    bool inventoryContainsInput = false;
+    for (const auto& item : state_.inventory) {
+        if (sameTextUtf8(item, input)) {
+            inventoryContainsInput = true;
+            break;
+        }
+    }
+
+    const std::string& locationId = state_.currentLocationId;
+    for (const auto& rule : resources_.itemUseRules()) {
+        if (rule.locationId != locationId || !ruleNameMatches(rule, input)) {
+            continue;
+        }
+
+        if (!state_.hasItem(rule.item)) {
+            std::cout << "РЈ РІР°СЃ РЅРµС‚ РЅСѓР¶РЅРѕРіРѕ РїСЂРµРґРјРµС‚Р°: " << rule.item << ".\n";
+            return;
+        }
+
+        for (const auto& item : rule.requiresItems) {
+            if (!state_.hasItem(item)) {
+                std::cout << "Р”Р»СЏ СЌС‚РѕРіРѕ РЅСѓР¶РµРЅ РµС‰С‘ РѕРґРёРЅ РїСЂРµРґРјРµС‚: " << item << ".\n";
+                return;
+            }
+        }
+
+        for (const auto& flag : rule.requiresFlags) {
+            if (!state_.flag(flag)) {
+                std::cout << "Р’С‹ РїРѕРєР° РЅРµ РїРѕРЅРёРјР°РµС‚Рµ, РєР°Рє СЌС‚Рѕ Р·РґРµСЃСЊ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ. РќСѓР¶РЅРѕ Р±РѕР»СЊС€Рµ РёРЅС„РѕСЂРјР°С†РёРё.\n";
+                return;
+            }
+        }
+
+        if (allFlagsAlreadySet(state_, rule.setFlags)) {
+            std::cout << "Р’С‹ СѓР¶Рµ РёСЃРїРѕР»СЊР·РѕРІР°Р»Рё СЌС‚Рѕ Р·РґРµСЃСЊ.\n";
+            return;
+        }
+
+        for (const auto& item : rule.removeItems) {
+            state_.removeItem(item);
+        }
+
+        for (const auto& item : rule.addItems) {
+            state_.addItem(item);
+        }
+
+        for (const auto& flag : rule.setFlags) {
+            state_.setFlag(flag);
+        }
+
+        if (rule.spendAction) {
+            spendAction();
+        }
+
+        std::cout << rule.message << "\n";
+        return;
+    }
+
+    if (inventoryContainsInput) {
+        std::cout << "Р—РґРµСЃСЊ СЌС‚РѕС‚ РїСЂРµРґРјРµС‚ РїСЂРёРјРµРЅРёС‚СЊ РЅРµ РїРѕР»СѓС‡РёС‚СЃСЏ.\n";
+    } else {
+        std::cout << "РўР°РєРѕРіРѕ РїСЂРµРґРјРµС‚Р° РЅРµС‚ РІ РёРЅРІРµРЅС‚Р°СЂРµ. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°Р·РІР°РЅРёРµ.\n";
     }
 }
 
@@ -324,7 +441,7 @@ void Game::nextDay(int days) {
     state_.day += days;
     state_.actionsLeft = 5;
     state_.currentLocationId = "cell";
-    std::cout << "\nВы засыпаете. Наступает день " << state_.day << ".\n";
+    std::cout << "\nР’С‹ Р·Р°СЃС‹РїР°РµС‚Рµ. РќР°СЃС‚СѓРїР°РµС‚ РґРµРЅСЊ " << state_.day << ".\n";
 }
 
 void Game::handleLostFight() {
@@ -335,29 +452,29 @@ void Game::handleLostFight() {
 
 void Game::finaleEscape() {
     std::cout << "\n========================================\n";
-    std::cout << "Ночь на десятый день. Пора бежать.\n";
+    std::cout << "РќРѕС‡СЊ РЅР° РґРµСЃСЏС‚С‹Р№ РґРµРЅСЊ. РџРѕСЂР° Р±РµР¶Р°С‚СЊ.\n";
     std::cout << "========================================\n";
-    std::cout << "1. Идти через прачечную и старый тоннель\n";
-    std::cout << "2. Прорываться через двор\n";
-    std::cout << "3. Сдаться судьбе\n";
+    std::cout << "1. РРґС‚Рё С‡РµСЂРµР· РїСЂР°С‡РµС‡РЅСѓСЋ Рё СЃС‚Р°СЂС‹Р№ С‚РѕРЅРЅРµР»СЊ\n";
+    std::cout << "2. РџСЂРѕСЂС‹РІР°С‚СЊСЃСЏ С‡РµСЂРµР· РґРІРѕСЂ\n";
+    std::cout << "3. РЎРґР°С‚СЊСЃСЏ СЃСѓРґСЊР±Рµ\n";
     int choice = askInt("> ", 1, 3);
 
     if (choice == 3) {
-        gameOver("Утром приговор привели в исполнение. Побег так и не начался.");
+        gameOver("РЈС‚СЂРѕРј РїСЂРёРіРѕРІРѕСЂ РїСЂРёРІРµР»Рё РІ РёСЃРїРѕР»РЅРµРЅРёРµ. РџРѕР±РµРі С‚Р°Рє Рё РЅРµ РЅР°С‡Р°Р»СЃСЏ.");
         return;
     }
 
     if (choice == 2) {
-        if (!state_.hasItem("Железный прут") && !state_.hasItem("Скальпель")) {
-            gameOver("Во дворе вас заметили прожекторы. Без оружия прорваться не удалось.");
+        if (!state_.hasItem("Р–РµР»РµР·РЅС‹Р№ РїСЂСѓС‚") && !state_.hasItem("РЎРєР°Р»СЊРїРµР»СЊ")) {
+            gameOver("Р’Рѕ РґРІРѕСЂРµ РІР°СЃ Р·Р°РјРµС‚РёР»Рё РїСЂРѕР¶РµРєС‚РѕСЂС‹. Р‘РµР· РѕСЂСѓР¶РёСЏ РїСЂРѕСЂРІР°С‚СЊСЃСЏ РЅРµ СѓРґР°Р»РѕСЃСЊ.");
             return;
         }
         CombatSystem combat(resources_.combatPhrases());
         bool won = combat.fight(hero_, resources_.enemy("guard_squad"));
-        if (won && state_.flag("guard_schedule")) {
-            victory("Вы прорвались через двор, используя карту обходов. Свобода пахнет холодным воздухом.");
+        if (won && (state_.flag("guard_schedule") || state_.flag("rope_escape_ready") || state_.flag("yard_fence_weakened"))) {
+            victory("Р’С‹ РїСЂРѕСЂРІР°Р»РёСЃСЊ С‡РµСЂРµР· РґРІРѕСЂ, РёСЃРїРѕР»СЊР·СѓСЏ РїРѕРґРіРѕС‚РѕРІР»РµРЅРЅРѕРµ СЃРЅР°СЂСЏР¶РµРЅРёРµ Рё РєР°СЂС‚Сѓ РѕР±С…РѕРґРѕРІ. РЎРІРѕР±РѕРґР° РїР°С…РЅРµС‚ С…РѕР»РѕРґРЅС‹Рј РІРѕР·РґСѓС…РѕРј.");
         } else {
-            gameOver("Даже победив часть охраны, вы выбрали слишком заметный маршрут. Вас схватили у стены.");
+            gameOver("Р”Р°Р¶Рµ РїРѕР±РµРґРёРІ С‡Р°СЃС‚СЊ РѕС…СЂР°РЅС‹, РІС‹ РІС‹Р±СЂР°Р»Рё СЃР»РёС€РєРѕРј Р·Р°РјРµС‚РЅС‹Р№ РјР°СЂС€СЂСѓС‚. Р’Р°СЃ СЃС…РІР°С‚РёР»Рё Сѓ СЃС‚РµРЅС‹.");
         }
         return;
     }
@@ -365,34 +482,34 @@ void Game::finaleEscape() {
     int score = 0;
     std::vector<std::string> missing;
 
-    if (state_.flag("info_old_tunnels") || state_.flag("info_laundry_exit")) ++score;
-    else missing.push_back("нет информации о тоннеле");
+    if (state_.flag("info_old_tunnels") || state_.flag("info_laundry_exit") || state_.flag("hidden_map_found")) ++score;
+    else missing.push_back("РЅРµС‚ РёРЅС„РѕСЂРјР°С†РёРё Рѕ С‚РѕРЅРЅРµР»Рµ");
 
-    if (state_.hasItem("Отмычка") || state_.hasItem("Скальпель") || state_.flag("laundry_lock_weak")) ++score;
-    else missing.push_back("нечем открыть техническую дверь");
+    if (state_.hasItem("РћС‚РјС‹С‡РєР°") || state_.hasItem("РЎРєР°Р»СЊРїРµР»СЊ") || state_.hasItem("РЎР°РјРѕРґРµР»СЊРЅР°СЏ РѕС‚РІС‘СЂС‚РєР°") || state_.flag("laundry_lock_weak") || state_.flag("laundry_lock_opened")) ++score;
+    else missing.push_back("РЅРµС‡РµРј РѕС‚РєСЂС‹С‚СЊ С‚РµС…РЅРёС‡РµСЃРєСѓСЋ РґРІРµСЂСЊ");
 
-    if (state_.hasItem("Верёвка") || state_.hasItem("Форма заключённого-прачки")) ++score;
-    else missing.push_back("нет снаряжения/маскировки");
+    if (state_.hasItem("Р’РµСЂС‘РІРєР°") || state_.hasItem("Р¤РѕСЂРјР° Р·Р°РєР»СЋС‡С‘РЅРЅРѕРіРѕ-РїСЂР°С‡РєРё") || state_.flag("rope_escape_ready") || state_.flag("laundry_disguise_ready")) ++score;
+    else missing.push_back("РЅРµС‚ СЃРЅР°СЂСЏР¶РµРЅРёСЏ/РјР°СЃРєРёСЂРѕРІРєРё");
 
     if (state_.flag("guard_schedule") || state_.flag("strongman_friend")) ++score;
-    else missing.push_back("неизвестны ночные обходы");
+    else missing.push_back("РЅРµРёР·РІРµСЃС‚РЅС‹ РЅРѕС‡РЅС‹Рµ РѕР±С…РѕРґС‹");
 
     if (score >= 3) {
-        victory("Вы открыли дверь прачечной, прошли по старому тоннелю и выбрались за стену до рассвета.");
+        victory("Р’С‹ РѕС‚РєСЂС‹Р»Рё РґРІРµСЂСЊ РїСЂР°С‡РµС‡РЅРѕР№, РїСЂРѕС€Р»Рё РїРѕ СЃС‚Р°СЂРѕРјСѓ С‚РѕРЅРЅРµР»СЋ Рё РІС‹Р±СЂР°Р»РёСЃСЊ Р·Р° СЃС‚РµРЅСѓ РґРѕ СЂР°СЃСЃРІРµС‚Р°.");
     } else {
-        std::cout << "План развалился. Проблемы:\n";
+        std::cout << "РџР»Р°РЅ СЂР°Р·РІР°Р»РёР»СЃСЏ. РџСЂРѕР±Р»РµРјС‹:\n";
         for (const auto& item : missing) std::cout << "- " << item << "\n";
-        gameOver("Охрана нашла вас в техническом коридоре. Казнь состоится утром.");
+        gameOver("РћС…СЂР°РЅР° РЅР°С€Р»Р° РІР°СЃ РІ С‚РµС…РЅРёС‡РµСЃРєРѕРј РєРѕСЂРёРґРѕСЂРµ. РљР°Р·РЅСЊ СЃРѕСЃС‚РѕРёС‚СЃСЏ СѓС‚СЂРѕРј.");
     }
 }
 
 void Game::gameOver(const std::string& text) {
-    std::cout << "\nПОРАЖЕНИЕ\n" << text << "\n";
+    std::cout << "\nРџРћР РђР–Р•РќРР•\n" << text << "\n";
     inGame_ = false;
 }
 
 void Game::victory(const std::string& text) {
-    std::cout << "\nПОБЕДА\n" << text << "\n";
+    std::cout << "\nРџРћР‘Р•Р”Рђ\n" << text << "\n";
     inGame_ = false;
 }
 
@@ -403,7 +520,7 @@ bool Game::chance(int percent) {
 
 void Game::printInventory() const {
     if (state_.inventory.empty()) {
-        std::cout << "ничего";
+        std::cout << "РЅРёС‡РµРіРѕ";
         return;
     }
     bool first = true;
@@ -421,4 +538,4 @@ void Game::addItemOnce(const std::string& item, const std::string& message) {
     }
 }
 
-} 
+} // namespace efd

@@ -39,4 +39,4 @@ private:
     int enduranceLevel_ = 1;
 };
 
-} 
+} // namespace efd

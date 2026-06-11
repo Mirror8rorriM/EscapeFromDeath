@@ -1,5 +1,6 @@
 #include "combat_system.h"
 
+#include "console_encoding.h"
 #include "utils.h"
 
 #include <chrono>
@@ -31,27 +32,30 @@ int CombatSystem::calculateIncomingDamage(int baseDamage, bool correctWord, doub
 
 bool CombatSystem::fight(Hero& hero, EnemyData enemyTemplate) {
     if (phrases_.empty()) {
-        std::cout << "Íåò çàãðóæåííûõ áîåâûõ ôðàç. Áîé íåâîçìîæåí.\n";
+        std::cout << "ÐÐµÑ‚ Ð·Ð°Ð³Ñ€ÑƒÐ¶ÐµÐ½Ð½Ñ‹Ñ… Ð±Ð¾ÐµÐ²Ñ‹Ñ… Ñ„Ñ€Ð°Ð·. Ð‘Ð¾Ð¹ Ð½ÐµÐ²Ð¾Ð·Ð¼Ð¾Ð¶ÐµÐ½.\n";
         return false;
     }
 
     int enemyHp = enemyTemplate.hp;
-    std::cout << "\nÁîé íà÷àëñÿ: " << enemyTemplate.name << "!\n";
-    std::cout << "Ââîäèòå îäíî èç ñëîâ, íàïèñàííûõ ÊÀÏÑÎÌ. ×åì áûñòðåå ââîä, òåì ìåíüøå óðîí.\n\n";
+    std::cout << "\nÐ‘Ð¾Ð¹ Ð½Ð°Ñ‡Ð°Ð»ÑÑ: " << enemyTemplate.name << "!\n";
+    std::cout << "Ð’Ð²Ð¾Ð´Ð¸Ñ‚Ðµ Ð¾Ð´Ð½Ð¾ Ð¸Ð· ÑÐ»Ð¾Ð², Ð½Ð°Ð¿Ð¸ÑÐ°Ð½Ð½Ñ‹Ñ… ÐšÐÐŸÐ¡ÐžÐœ. Ð§ÐµÐ¼ Ð±Ñ‹ÑÑ‚Ñ€ÐµÐµ Ð²Ð²Ð¾Ð´, Ñ‚ÐµÐ¼ Ð¼ÐµÐ½ÑŒÑˆÐµ ÑƒÑ€Ð¾Ð½.\n\n";
 
     while (hero.isAlive() && enemyHp > 0) {
         const CombatPhrase& phrase = randomPhrase();
         std::cout << enemyTemplate.name << ": " << phrase.attackText << "\n";
-        std::cout << "Ìíå íóæíî ";
+        std::cout << "ÐœÐ½Ðµ Ð½ÑƒÐ¶Ð½Ð¾ ";
         for (std::size_t i = 0; i < phrase.reactions.size(); ++i) {
-            if (i > 0) std::cout << ", ëèáî ";
+            if (i > 0) std::cout << ", Ð»Ð¸Ð±Ð¾ ";
             std::cout << phrase.reactions[i].text;
         }
         std::cout << "\n> " << std::flush;
 
         const auto start = std::chrono::steady_clock::now();
         std::string answer;
-        std::getline(std::cin, answer);
+        if (!readLineUtf8(answer)) {
+            std::cout << "\nÐ’Ð²Ð¾Ð´ Ð·Ð°ÐºÑ€Ñ‹Ñ‚. Ð‘Ð¾Ð¹ Ð¾ÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½.\n";
+            return false;
+        }
         const auto finish = std::chrono::steady_clock::now();
         const double seconds = std::chrono::duration<double>(finish - start).count();
 
@@ -73,11 +77,11 @@ bool CombatSystem::fight(Hero& hero, EnemyData enemyTemplate) {
         );
 
         if (correct && incoming == 0) {
-            std::cout << "Èäåàëüíî! Âû íå ïîëó÷èëè óðîí.\n";
+            std::cout << "Ð˜Ð´ÐµÐ°Ð»ÑŒÐ½Ð¾! Ð’Ñ‹ Ð½Ðµ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð»Ð¸ ÑƒÑ€Ð¾Ð½.\n";
         } else if (correct) {
-            std::cout << "Âû óñïåëè ñðåàãèðîâàòü ÷àñòè÷íî. Ïîëó÷åíî óðîíà: " << incoming << ".\n";
+            std::cout << "Ð’Ñ‹ ÑƒÑÐ¿ÐµÐ»Ð¸ ÑÑ€ÐµÐ°Ð³Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ñ‡Ð°ÑÑ‚Ð¸Ñ‡Ð½Ð¾. ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ ÑƒÑ€Ð¾Ð½Ð°: " << incoming << ".\n";
         } else {
-            std::cout << "Íåâåðíîå äåéñòâèå. Óäàð ïðîø¸ë ïîëíîñòüþ. Ïîëó÷åíî óðîíà: " << incoming << ".\n";
+            std::cout << "ÐÐµÐ²ÐµÑ€Ð½Ð¾Ðµ Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ðµ. Ð£Ð´Ð°Ñ€ Ð¿Ñ€Ð¾ÑˆÑ‘Ð» Ð¿Ð¾Ð»Ð½Ð¾ÑÑ‚ÑŒÑŽ. ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ ÑƒÑ€Ð¾Ð½Ð°: " << incoming << ".\n";
         }
         hero.receiveDamage(incoming);
         if (!hero.isAlive()) break;
@@ -85,20 +89,20 @@ bool CombatSystem::fight(Hero& hero, EnemyData enemyTemplate) {
         int outgoing = hero.attackDamage();
         if (correct && seconds <= 1.0) {
             outgoing = static_cast<int>(std::ceil(outgoing * 1.5));
-            std::cout << "Êîíòðàòàêà ïîëó÷èëàñü èäåàëüíîé! ";
+            std::cout << "ÐšÐ¾Ð½Ñ‚Ñ€Ð°Ñ‚Ð°ÐºÐ° Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð»Ð°ÑÑŒ Ð¸Ð´ÐµÐ°Ð»ÑŒÐ½Ð¾Ð¹! ";
         }
         enemyHp = std::max(0, enemyHp - outgoing);
-        std::cout << "Âû óäàðèëè ïðîòèâíèêà íà " << outgoing << " óðîíà.\n";
-        std::cout << "Âàøå HP: " << hero.hp() << " | HP âðàãà: " << enemyHp << "\n\n";
+        std::cout << "Ð’Ñ‹ ÑƒÐ´Ð°Ñ€Ð¸Ð»Ð¸ Ð¿Ñ€Ð¾Ñ‚Ð¸Ð²Ð½Ð¸ÐºÐ° Ð½Ð° " << outgoing << " ÑƒÑ€Ð¾Ð½Ð°.\n";
+        std::cout << "Ð’Ð°ÑˆÐµ HP: " << hero.hp() << " | HP Ð²Ñ€Ð°Ð³Ð°: " << enemyHp << "\n\n";
     }
 
     if (hero.isAlive()) {
-        std::cout << "Âû ïîáåäèëè â áîþ.\n\n";
+        std::cout << "Ð’Ñ‹ Ð¿Ð¾Ð±ÐµÐ´Ð¸Ð»Ð¸ Ð² Ð±Ð¾ÑŽ.\n\n";
         return true;
     }
 
-    std::cout << "Âû ïðîèãðàëè áîé è î÷íóëèñü â ëàçàðåòå ÷åðåç äâà äíÿ.\n\n";
+    std::cout << "Ð’Ñ‹ Ð¿Ñ€Ð¾Ð¸Ð³Ñ€Ð°Ð»Ð¸ Ð±Ð¾Ð¹ Ð¸ Ð¾Ñ‡Ð½ÑƒÐ»Ð¸ÑÑŒ Ð² Ð»Ð°Ð·Ð°Ñ€ÐµÑ‚Ðµ Ñ‡ÐµÑ€ÐµÐ· Ð´Ð²Ð° Ð´Ð½Ñ.\n\n";
     return false;
 }
 
-} 
+} // namespace efd
