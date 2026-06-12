@@ -22,6 +22,8 @@ public:
     const std::vector<CombatPhrase>& combatPhrases() const;
     const std::vector<DialogueEntry>& dialogues() const;
     const std::vector<ItemUseRule>& itemUseRules() const;
+    const std::map<std::string, std::string>& texts() const;
+    const std::string& text(const std::string& key) const;
 
     const LocationData& location(const std::string& id) const;
     const EnemyData& enemy(const std::string& id) const;
@@ -37,6 +39,7 @@ private:
     void loadCombatPhrases();
     void loadDialogues();
     void loadItemUseRules();
+    void loadTexts();
 
     std::filesystem::path dataDirectory_;
     std::map<std::string, LocationData> locations_;
@@ -44,6 +47,7 @@ private:
     std::vector<CombatPhrase> combatPhrases_;
     std::vector<DialogueEntry> dialogues_;
     std::vector<ItemUseRule> itemUseRules_;
+    std::map<std::string, std::string> texts_;
 };
 
-} // namespace efd
+} 

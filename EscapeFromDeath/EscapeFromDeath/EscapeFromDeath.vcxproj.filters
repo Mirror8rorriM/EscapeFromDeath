@@ -36,5 +36,6 @@
     <None Include="data\combat_phrases.json"><Filter>Resource Files</Filter></None>
     <None Include="data\dialogues.txt"><Filter>Resource Files</Filter></None>
     <None Include="data\item_uses.json"><Filter>Resource Files</Filter></None>
+    <None Include="data\texts.txt"><Filter>Resource Files</Filter></None>
   </ItemGroup>
 </Project>

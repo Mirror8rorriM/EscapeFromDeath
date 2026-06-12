@@ -39,4 +39,4 @@ void Creatures::healFull() {
     hp_ = maxHp_;
 }
 
-} // namespace efd
+} 

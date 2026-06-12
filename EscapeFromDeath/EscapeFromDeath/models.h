@@ -72,4 +72,4 @@ struct GameState {
     void setFlag(const std::string& key, bool value = true);
 };
 
-} // namespace efd
+} 

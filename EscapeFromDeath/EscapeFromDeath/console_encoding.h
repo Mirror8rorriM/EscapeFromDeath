@@ -12,4 +12,4 @@ void setupRussianConsole();
 // и конвертирует в UTF-8, поэтому русский ввод работает независимо от системной кодовой страницы.
 bool readLineUtf8(std::string& line);
 
-} // namespace efd
+} 

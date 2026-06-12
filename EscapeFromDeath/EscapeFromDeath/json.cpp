@@ -50,7 +50,7 @@ void appendUtf8(std::string& out, unsigned int cp) {
     }
 }
 
-} // namespace
+} 
 
 Json::Json() : value_(nullptr) {}
 
@@ -308,4 +308,4 @@ void JsonParser::expect(char c) {
     ++pos_;
 }
 
-} // namespace efd
+} 

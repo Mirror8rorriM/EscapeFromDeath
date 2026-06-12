@@ -107,6 +107,7 @@
     <None Include="data\combat_phrases.json" />
     <None Include="data\dialogues.txt" />
     <None Include="data\item_uses.json" />
+    <None Include="data\texts.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

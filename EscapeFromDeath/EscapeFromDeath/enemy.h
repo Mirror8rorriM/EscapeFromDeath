@@ -16,4 +16,4 @@ private:
     double timeScale_ = 1.0;
 };
 
-} // namespace efd
+} 

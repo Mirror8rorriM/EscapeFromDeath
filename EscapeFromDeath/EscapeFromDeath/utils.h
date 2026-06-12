@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -13,5 +14,6 @@ int askInt(const std::string& prompt, int minValue, int maxValue);
 bool askYesNo(const std::string& prompt);
 std::vector<std::string> split(const std::string& text, char delimiter);
 std::string join(const std::set<std::string>& values, const std::string& delimiter);
+void setUtilityTexts(const std::map<std::string, std::string>* texts);
 
-} // namespace efd
+} 

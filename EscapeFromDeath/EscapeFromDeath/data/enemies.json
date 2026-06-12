@@ -1,74 +1,74 @@
 {
-    "enemies": [
-        {
-            "id": "prisoner",
-            "name": "Зек",
-            "hp": 45,
-            "damage": 12,
-            "timeScale": 1.0
-        },
-        {
-            "id": "guard",
-            "name": "Охранник",
-            "hp": 65,
-            "damage": 16,
-            "timeScale": 1.15
-        },
-        {
-            "id": "guard_squad",
-            "name": "Группа охраны",
-            "hp": 110,
-            "damage": 22,
-            "timeScale": 1.35
-        },
-        {
-            "id": "smuggler",
-            "name": "Контрабандист",
-            "hp": 55,
-            "damage": 14,
-            "timeScale": 1.25
-        },
-        {
-            "id": "corrupt_guard",
-            "name": "Коррумпированный охранник",
-            "hp": 70,
-            "damage": 15,
-            "timeScale": 1.10
-        },
-        {
-            "id": "old_timer",
-            "name": "Старик (Бывалый зэк)",
-            "hp": 35,
-            "damage": 8,
-            "timeScale": 0.85
-        },
-        {
-            "id": "laundryman",
-            "name": "Прачечник",
-            "hp": 60,
-            "damage": 15,
-            "timeScale": 1.10
-        },
-        {
-            "id": "gang_boss",
-            "name": "Авторитет (Главарь банды)",
-            "hp": 95,
-            "damage": 25,
-            "timeScale": 1.40
-        },
-        {
-            "id": "cook",
-            "name": "Повар",
-            "hp": 75,
-            "damage": 18,
-            "timeScale": 1.05
-        },
-        {
-            "id": "librarian",
-            "name": "Библиотекарь",
-            "hp": 40,
-            "damage": 10,
-            "timeScale": 0.95
-        }
-    ]
+  "enemies": [
+    {
+      "id": "prisoner",
+      "name": "Зек",
+      "hp": 45,
+      "damage": 12,
+      "timeScale": 1.0
+    },
+    {
+      "id": "guard",
+      "name": "Охранник",
+      "hp": 65,
+      "damage": 16,
+      "timeScale": 1.15
+    },
+    {
+      "id": "guard_squad",
+      "name": "Группа охраны",
+      "hp": 110,
+      "damage": 22,
+      "timeScale": 1.35
+    },
+    {
+      "id": "smuggler",
+      "name": "Контрабандист",
+      "hp": 55,
+      "damage": 14,
+      "timeScale": 1.25
+    },
+    {
+      "id": "corrupt_guard",
+      "name": "Коррумпированный охранник",
+      "hp": 70,
+      "damage": 15,
+      "timeScale": 1.1
+    },
+    {
+      "id": "old_timer",
+      "name": "Старик (Бывалый зэк)",
+      "hp": 35,
+      "damage": 8,
+      "timeScale": 0.85
+    },
+    {
+      "id": "laundryman",
+      "name": "Прачечник",
+      "hp": 60,
+      "damage": 15,
+      "timeScale": 1.1
+    },
+    {
+      "id": "gang_boss",
+      "name": "Авторитет (Главарь банды)",
+      "hp": 95,
+      "damage": 25,
+      "timeScale": 1.4
+    },
+    {
+      "id": "cook",
+      "name": "Повар",
+      "hp": 75,
+      "damage": 18,
+      "timeScale": 1.05
+    },
+    {
+      "id": "librarian",
+      "name": "Библиотекарь",
+      "hp": 40,
+      "damage": 10,
+      "timeScale": 0.95
+    }
+  ]
 }

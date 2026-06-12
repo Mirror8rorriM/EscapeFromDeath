@@ -7,10 +7,27 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <map>
 #include <string>
 #include <utility>
 
 namespace efd {
+
+namespace {
+const std::map<std::string, std::string>* gUtilityTexts = nullptr;
+
+std::string uiText(const std::string& key, const std::string& fallback) {
+    if (gUtilityTexts) {
+        auto it = gUtilityTexts->find(key);
+        if (it != gUtilityTexts->end()) return it->second;
+    }
+    return fallback;
+}
+}
+
+void setUtilityTexts(const std::map<std::string, std::string>* texts) {
+    gUtilityTexts = texts;
+}
 
 std::string trim(const std::string& s) {
     const auto begin = std::find_if_not(s.begin(), s.end(), [](unsigned char ch) { return std::isspace(ch); });
@@ -72,7 +89,7 @@ bool readCodePoint(const std::string& text, std::size_t& i, unsigned int& cp) {
     return false;
 }
 
-} // namespace
+} 
 
 std::string toLowerUtf8(std::string value) {
     std::string out;
@@ -106,7 +123,7 @@ int askInt(const std::string& prompt, int minValue, int maxValue) {
         std::cout << prompt;
         std::string line;
         if (!readLineUtf8(line)) {
-            std::cout << "\nВвод закрыт.\n";
+            std::cout << "\n" << uiText("input.closed", "Input closed.") << "\n";
             std::exit(0);
         }
         std::stringstream ss(line);
@@ -114,22 +131,22 @@ int askInt(const std::string& prompt, int minValue, int maxValue) {
         if (ss >> value && value >= minValue && value <= maxValue) {
             return value;
         }
-        std::cout << "Введите число от " << minValue << " до " << maxValue << ".\n";
+        std::cout << uiText("utils.enter_number_prefix", "Enter a number from ") << minValue << uiText("utils.enter_number_middle", " to ") << maxValue << uiText("utils.enter_number_suffix", ".") << "\n";
     }
 }
 
 bool askYesNo(const std::string& prompt) {
     while (true) {
-        std::cout << prompt << " (д/н, y/n): ";
+        std::cout << prompt << uiText("utils.yes_no_suffix", " (y/n): ");
         std::string line;
         if (!readLineUtf8(line)) {
-            std::cout << "\nВвод закрыт.\n";
+            std::cout << "\n" << uiText("input.closed", "Input closed.") << "\n";
             std::exit(0);
         }
         line = toLowerAscii(trim(line));
         if (line == "y" || line == "yes" || line == "д" || line == "да") return true;
         if (line == "n" || line == "no" || line == "н" || line == "нет") return false;
-        std::cout << "Ответьте д/н или y/n.\n";
+        std::cout << uiText("utils.answer_yes_no", "Answer y/n.") << "\n";
     }
 }
 
@@ -155,4 +172,4 @@ std::string join(const std::set<std::string>& values, const std::string& delimit
     return out;
 }
 
-} // namespace efd
+} 

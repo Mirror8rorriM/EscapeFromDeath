@@ -23,4 +23,4 @@ void GameState::setFlag(const std::string& key, bool value) {
     flags[key] = value;
 }
 
-} // namespace efd
+} 

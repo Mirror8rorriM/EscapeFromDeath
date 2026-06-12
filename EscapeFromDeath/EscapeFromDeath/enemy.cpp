@@ -11,4 +11,4 @@ double Enemy::timeScale() const {
     return timeScale_;
 }
 
-} // namespace efd
+} 

@@ -190,9 +190,9 @@ void installUtf8ConsoleBuffers() {
     std::clog.rdbuf(clogBuffer);
 }
 
-#endif // _WIN32
+#endif 
 
-} // namespace
+} 
 
 void setupRussianConsole() {
 #ifdef _WIN32
@@ -244,4 +244,4 @@ bool readLineUtf8(std::string& line) {
     return static_cast<bool>(std::getline(std::cin, line));
 }
 
-} // namespace efd
+} 

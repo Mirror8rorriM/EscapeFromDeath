@@ -26,4 +26,4 @@ protected:
     int damage_ = 1;
 };
 
-} // namespace efd
+} 
